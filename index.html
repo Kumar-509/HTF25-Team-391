@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelance Job Board API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .api-url {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-size: 13px;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .token-display {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Freelance Job Board API Tester</h1>
+        <div class="api-url">API Base URL: https://htf25-team-391-production.up.railway.app</div>
+
+        <!-- Health Check Section -->
+        <div class="section">
+            <h2>Health Check</h2>
+            <button onclick="healthCheck()">🏥 Check Health</button>
+            <div id="healthResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Register Section -->
+        <div class="section">
+            <h2>Register User</h2>
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="registerEmail" placeholder="user@example.com">
+            </div>
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="registerPassword" placeholder="password123">
+            </div>
+            <button onclick="registerUser()">✍️ Register</button>
+            <div id="registerResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="section">
+            <h2>Login User</h2>
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" placeholder="user@example.com">
+            </div>
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" placeholder="password123">
+            </div>
+            <button onclick="loginUser()">🔐 Login</button>
+            <div id="loginResponse" class="response" style="display:none;"></div>
+            <div id="tokenDisplay" class="token-display" style="display:none;"></div>
+        </div>
+
+        <!-- Get Jobs Section -->
+        <div class="section">
+            <h2>Get Jobs</h2>
+            <div class="input-group">
+                <label>Authorization Token (optional - use token from login):</label>
+                <input type="text" id="getJobsToken" placeholder="Bearer token...">
+            </div>
+            <button onclick="getJobs()">📋 Get All Jobs</button>
+            <div id="getJobsResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Create Job Section -->
+        <div class="section">
+            <h2>Create Job</h2>
+            <div class="input-group">
+                <label>Authorization Token (required - use token from login):</label>
+                <input type="text" id="createJobToken" placeholder="Bearer token...">
+            </div>
+            <div class="input-group">
+                <label>Job Title:</label>
+                <input type="text" id="jobTitle" placeholder="Senior Full Stack Developer">
+            </div>
+            <div class="input-group">
+                <label>Description:</label>
+                <textarea id="jobDescription" placeholder="We are looking for an experienced full stack developer..."></textarea>
+            </div>
+            <div class="input-group">
+                <label>Budget:</label>
+                <input type="number" id="jobBudget" placeholder="5000">
+            </div>
+            <div class="input-group">
+                <label>Duration:</label>
+                <input type="text" id="jobDuration" placeholder="3 months">
+            </div>
+            <button onclick="createJob()">➕ Create Job</button>
+            <div id="createJobResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://htf25-team-391-production.up.railway.app';
+        let authToken = '';
+
+        function displayResponse(elementId, status, data) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            
+            const statusClass = status < 400 ? 'success' : 'error';
+            const statusText = status < 400 ? `✅ Success (${status})` : `❌ Error (${status})`;
+            
+            element.innerHTML = `
+                <span class="status ${statusClass}">${statusText}</span>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        async function healthCheck() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                displayResponse('healthResponse', response.status, data);
+            } catch (error) {
+                displayResponse('healthResponse', 500, { error: error.message });
+            }
+        }
+
+        async function registerUser() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                displayResponse('registerResponse', response.status, data);
+            } catch (error) {
+                displayResponse('registerResponse', 500, { error: error.message });
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                displayResponse('loginResponse', response.status, data);
+
+                if (data.token) {
+                    authToken = data.token;
+                    document.getElementById('tokenDisplay').style.display = 'block';
+                    document.getElementById('tokenDisplay').innerHTML = `<strong>Token saved:</strong> ${authToken.substring(0, 50)}...`;
+                    
+                    // Auto-fill token fields
+                    document.getElementById('getJobsToken').value = authToken;
+                    document.getElementById('createJobToken').value = authToken;
+                }
+            } catch (error) {
+                displayResponse('loginResponse', 500, { error: error.message });
+            }
+        }
+
+        async function getJobs() {
+            const token = document.getElementById('getJobsToken').value || authToken;
+
+            try {
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE}/api/jobs`, {
+                    headers
+                });
+                const data = await response.json();
+                displayResponse('getJobsResponse', response.status, data);
+            } catch (error) {
+                displayResponse('getJobsResponse', 500, { error: error.message });
+            }
+        }
+
+        async function createJob() {
+            const token = document.getElementById('createJobToken').value || authToken;
+            const title = document.getElementById('jobTitle').value;
+            const description = document.getElementById('jobDescription').value;
+            const budget = document.getElementById('jobBudget').value;
+            const duration = document.getElementById('jobDuration').value;
+
+            if (!token) {
+                alert('Please provide an authorization token (login first)');
+                return;
+            }
+
+            if (!title || !description || !budget || !duration) {
+                alert('Please fill in all job fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/jobs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        budget: parseFloat(budget),
+                        duration
+                    })
+                });
+                const data = await response.json();
+                displayResponse('createJobResponse', response.status, data);
+
+                // Clear form on success
+                if (response.ok) {
+                    document.getElementById('jobTitle').value = '';
+                    document.getElementById('jobDescription').value = '';
+                    document.getElementById('jobBudget').value = '';
+                    document.getElementById('jobDuration').value = '';
+                }
+            } catch (error) {
+                displayResponse('createJobResponse', 500, { error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>
