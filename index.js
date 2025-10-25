@@ -5,22 +5,18 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
-
 const app = express();
-
 app.use(express.json());
 app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
-
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelance-board');
     console.log('✅ MongoDB Connected');
   } catch (error) {
     console.error('❌ MongoDB Error:', error.message);
-    process.exit(1);
+    // process.exit(1);
   }
 };
-
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -28,14 +24,11 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['client', 'freelancer', 'both'], default: 'both' },
   createdAt: { type: Date, default: Date.now }
 });
-
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
 });
-
 const User = mongoose.model('User', UserSchema);
-
 const JobSchema = new mongoose.Schema({
   title: String,
   description: String,
@@ -45,13 +38,9 @@ const JobSchema = new mongoose.Schema({
   status: { type: String, default: 'open' },
   createdAt: { type: Date, default: Date.now }
 });
-
 const Job = mongoose.model('Job', JobSchema);
-
 app.get('/', (req, res) => res.json({ message: 'FreelanceHub API - Team 391', endpoints: { health: '/api/health', register: 'POST /api/auth/register', login: 'POST /api/auth/login', jobs: '/api/jobs' } }));
-
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'API Running', mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected' }));
-
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -62,7 +51,6 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 });
-
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,7 +64,6 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
 app.get('/api/jobs', async (req, res) => {
   try {
     const jobs = await Job.find().populate('client', 'name email');
@@ -85,6 +72,5 @@ app.get('/api/jobs', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
 const PORT = process.env.PORT || 5000;
 connectDB().then(() => app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`)));
