@@ -1,362 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freelance Job Board API Tester</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .api-url {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        .section h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: monospace;
-        }
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        .response {
-            margin-top: 15px;
-            padding: 15px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .response pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            margin: 0;
-            font-size: 13px;
-            color: #333;
-        }
-        .status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .token-display {
-            background: #e7f3ff;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            word-break: break-all;
-            font-size: 12px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreelanceHub - Find & Post Freelance Jobs</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121838;
+      --muted: #8aa0ff;
+      --primary: #5b7cfa;
+      --primary-600: #4a69f0;
+      --accent: #22d3ee;
+      --text: #e7eaf6;
+      --text-dim: #b9c0ff;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --shadow: 0 20px 40px rgba(0,0,0,0.35);
+      --glass: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+    }
+    * { box-sizing: border-box }
+    html,body { height: 100% }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, #1a2358, transparent), radial-gradient(900px 500px at 90% 0%, #0e1536, transparent), linear-gradient(180deg, #0a0f23, #0b1020 40%);
+      background-attachment: fixed;
+    }
+    a { color: inherit; text-decoration: none }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px }
+
+    /* Navbar */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: linear-gradient(180deg, rgba(10,15,35,0.8), rgba(10,15,35,0));
+      backdrop-filter: saturate(130%) blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0 }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 0.3px }
+    .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--primary)); box-shadow: 0 10px 25px rgba(34,211,238,0.25) }
+    .brand span { font-size: 18px }
+    .nav-actions { display: flex; gap: 10px; align-items: center }
+    .btn { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--text); background: var(--glass); cursor: pointer; transition: .2s; font-weight: 600 }
+    .btn:hover { transform: translateY(-1px); border-color: var(--muted) }
+    .btn.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: white; box-shadow: 0 10px 30px rgba(91,124,250,0.3) }
+    .btn.primary:hover { filter: brightness(1.05) }
+
+    /* Hero */
+    .hero { padding: 34px 0 26px }
+    .hero-card { background: linear-gradient(180deg, rgba(18,24,56,0.85), rgba(18,24,56,0.55)); border: 1px solid var(--border); border-radius: 18px; padding: 30px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; box-shadow: var(--shadow) }
+    .hero h1 { margin: 0 0 8px; font-size: 34px }
+    .hero p { margin: 0 0 14px; color: var(--text-dim) }
+    .search { display: flex; gap: 10px }
+    .field { position: relative; flex: 1 }
+    .field input, .field select { width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(8,12,28,0.6); color: var(--text) }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+    .stat { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center }
+    .stat .num { font-weight: 800; font-size: 20px }
+    .stat .lbl { color: var(--text-dim); font-size: 13px }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 }
+    .chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-dim); cursor: pointer; font-weight: 600 }
+    .chip.active { color: white; border-color: var(--muted); background: rgba(91,124,250,0.15) }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+    .card { background: linear-gradient(180deg, rgba(18,24,56,0.9), rgba(18,24,56,0.6)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow) }
+    .card h3 { margin: 0; font-size: 18px }
+    .muted { color: var(--text-dim); font-size: 14px }
+    .tags { display: flex; gap: 8px; flex-wrap: wrap }
+    .tag { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid var(--border) }
+
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px }
+    .price { font-weight: 800; color: var(--accent) }
+
+    .empty { text-align: center; color: var(--text-dim); padding: 30px }
+
+    /* Auth & Modal */
+    .sheet, .modal { position: fixed; inset: 0; display: none; place-items: center; z-index: 100; background: rgba(0,0,0,0.5) }
+    .sheet.open, .modal.open { display: grid }
+    .panel { width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(18,24,56,0.95), rgba(18,24,56,0.75)); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow) }
+    .panel h2 { margin: 0 0 8px }
+    .panel .field { margin-bottom: 10px }
+
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #111936; color: #e5edff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: none; box-shadow: var(--shadow) }
+    .toast.show { display: inline-block }
+
+    @media (max-width: 980px) {
+      .hero-card { grid-template-columns: 1fr }
+      .grid { grid-template-columns: repeat(2, 1fr) }
+    }
+    @media (max-width: 640px) {
+      .nav-inner { flex-wrap: wrap }
+      .grid { grid-template-columns: 1fr }
+      .brand span { display: none }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Freelance Job Board API Tester</h1>
-        <div class="api-url">API Base URL: https://htf25-team-391-production.up.railway.app</div>
-
-        <!-- Health Check Section -->
-        <div class="section">
-            <h2>Health Check</h2>
-            <button onclick="healthCheck()">🏥 Check Health</button>
-            <div id="healthResponse" class="response" style="display:none;"></div>
-        </div>
-
-        <!-- Register Section -->
-        <div class="section">
-            <h2>Register User</h2>
-            <div class="input-group">
-                <label>Email:</label>
-                <input type="email" id="registerEmail" placeholder="user@example.com">
-            </div>
-            <div class="input-group">
-                <label>Password:</label>
-                <input type="password" id="registerPassword" placeholder="password123">
-            </div>
-            <button onclick="registerUser()">✍️ Register</button>
-            <div id="registerResponse" class="response" style="display:none;"></div>
-        </div>
-
-        <!-- Login Section -->
-        <div class="section">
-            <h2>Login User</h2>
-            <div class="input-group">
-                <label>Email:</label>
-                <input type="email" id="loginEmail" placeholder="user@example.com">
-            </div>
-            <div class="input-group">
-                <label>Password:</label>
-                <input type="password" id="loginPassword" placeholder="password123">
-            </div>
-            <button onclick="loginUser()">🔐 Login</button>
-            <div id="loginResponse" class="response" style="display:none;"></div>
-            <div id="tokenDisplay" class="token-display" style="display:none;"></div>
-        </div>
-
-        <!-- Get Jobs Section -->
-        <div class="section">
-            <h2>Get Jobs</h2>
-            <div class="input-group">
-                <label>Authorization Token (optional - use token from login):</label>
-                <input type="text" id="getJobsToken" placeholder="Bearer token...">
-            </div>
-            <button onclick="getJobs()">📋 Get All Jobs</button>
-            <div id="getJobsResponse" class="response" style="display:none;"></div>
-        </div>
-
-        <!-- Create Job Section -->
-        <div class="section">
-            <h2>Create Job</h2>
-            <div class="input-group">
-                <label>Authorization Token (required - use token from login):</label>
-                <input type="text" id="createJobToken" placeholder="Bearer token...">
-            </div>
-            <div class="input-group">
-                <label>Job Title:</label>
-                <input type="text" id="jobTitle" placeholder="Senior Full Stack Developer">
-            </div>
-            <div class="input-group">
-                <label>Description:</label>
-                <textarea id="jobDescription" placeholder="We are looking for an experienced full stack developer..."></textarea>
-            </div>
-            <div class="input-group">
-                <label>Budget:</label>
-                <input type="number" id="jobBudget" placeholder="5000">
-            </div>
-            <div class="input-group">
-                <label>Duration:</label>
-                <input type="text" id="jobDuration" placeholder="3 months">
-            </div>
-            <button onclick="createJob()">➕ Create Job</button>
-            <div id="createJobResponse" class="response" style="display:none;"></div>
-        </div>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#" id="nav-home">
+        <div class="logo"></div>
+        <span>FreelanceHub</span>
+      </a>
+      <nav class="nav-actions">
+        <button class="btn" id="btn-browse">Browse Jobs</button>
+        <button class="btn" id="btn-post">Post Job</button>
+        <button class="btn primary" id="btn-login">Sign In</button>
+      </nav>
     </div>
+  </header>
 
-    <script>
-        const API_BASE = 'https://htf25-team-391-production.up.railway.app';
-        let authToken = '';
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero" id="section-hero">
+      <div class="hero-card">
+        <div>
+          <h1>Find Your Next Freelance Project</h1>
+          <p>Search curated projects, post jobs, and get hired fast.</p>
+          <div class="search">
+            <div class="field"><input id="search-keyword" type="text" placeholder="Search by keyword (e.g., React, logo)" /></div>
+            <div class="field">
+              <select id="search-category">
+                <option value="">All Categories</option>
+                <option>Web Development</option>
+                <option>Design</option>
+                <option>Writing</option>
+                <option>Data</option>
+                <option>Marketing</option>
+              </select>
+            </div>
+            <button class="btn primary" id="btn-search">Search</button>
+          </div>
+          <div class="stats" style="margin-top:14px">
+            <div class="stat"><div class="num" id="stat-jobs">0</div><div class="lbl">Active Jobs</div></div>
+            <div class="stat"><div class="num">4.8/5</div><div class="lbl">Client Rating</div></div>
+            <div class="stat"><div class="num">5k+</div><div class="lbl">Freelancers</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3>Quick Actions</h3>
+            <div class="row"><span class="muted">New here?</span><button class="btn" id="quick-register">Create account</button></div>
+            <div class="row"><span class="muted">Have a project?</span><button class="btn" id="quick-post">Post a job</button></div>
+            <div class="row"><span class="muted">Returning?</span><button class="btn" id="quick-login">Sign in</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        function displayResponse(elementId, status, data) {
-            const element = document.getElementById(elementId);
-            element.style.display = 'block';
-            
-            const statusClass = status < 400 ? 'success' : 'error';
-            const statusText = status < 400 ? `✅ Success (${status})` : `❌ Error (${status})`;
-            
-            element.innerHTML = `
-                <span class="status ${statusClass}">${statusText}</span>
-                <pre>${JSON.stringify(data, null, 2)}</pre>
-            `;
-        }
+    <!-- Filters -->
+    <section id="section-filters">
+      <div class="filters" id="category-filters">
+        <button class="chip active" data-cat="">All</button>
+        <button class="chip" data-cat="Web Development">Web Dev</button>
+        <button class="chip" data-cat="Design">Design</button>
+        <button class="chip" data-cat="Writing">Writing</button>
+        <button class="chip" data-cat="Data">Data</button>
+        <button class="chip" data-cat="Marketing">Marketing</button>
+      </div>
+    </section>
 
-        async function healthCheck() {
-            try {
-                const response = await fetch(`${API_BASE}/api/health`);
-                const data = await response.json();
-                displayResponse('healthResponse', response.status, data);
-            } catch (error) {
-                displayResponse('healthResponse', 500, { error: error.message });
-            }
-        }
+    <!-- Jobs Grid -->
+    <section id="section-jobs">
+      <div class="grid" id="jobs-grid"></div>
+      <div class="empty" id="jobs-empty" style="display:none">No jobs match your filters.</div>
+    </section>
+  </main>
 
-        async function registerUser() {
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
+  <!-- Auth Sheets -->
+  <div class="sheet" id="sheet-login" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <h2 id="login-title">Sign in</h2>
+      <div class="field"><input id="login-email" type="email" placeholder="Email" /></div>
+      <div class="field"><input id="login-password" type="password" placeholder="Password" /></div>
+      <div class="row">
+        <button class="btn" id="login-cancel">Cancel</button>
+        <button class="btn primary" id="login-submit">Sign In</button>
+      </div>
+      <p class="muted" style="margin-top:8px">No account? <a href="#" id="to-register">Register</a></p>
+    </div>
+  </div>
 
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
+  <div class="sheet" id="sheet-register" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="register-title">
+      <h2 id="register-title">Create your account</h2>
+      <div class="field"><input id="reg-name" type="text" placeholder="Full Name" /></div>
+      <div class="field"><input id="reg-email" type="email" placeholder="Email" /></div>
+      <div class="field"><input id="reg-password" type="password" placeholder="Password" /></div>
+      <div class="field">
+        <select id="reg-role">
+          <option value="freelancer">Freelancer</option>
+          <option value="client">Client</option>
+        </select>
+      </div>
+      <div class="row">
+        <button class="btn" id="register-cancel">Cancel</button>
+        <button class="btn primary" id="register-submit">Create Account</button>
+      </div>
+      <p class="muted" style="margin-top:8px">Already have an account? <a href="#" id="to-login">Sign in</a></p>
+    </div>
+  </div>
 
-            try {
-                const response = await fetch(`${API_BASE}/api/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await response.json();
-                displayResponse('registerResponse', response.status, data);
-            } catch (error) {
-                displayResponse('registerResponse', 500, { error: error.message });
-            }
-        }
+  <!-- Post Job Modal -->
+  <div class="modal" id="modal-post" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="post-title">
+      <h2 id="post-title">Post a Job</h2>
+      <div class="field"><input id="job-title" placeholder="Job Title" /></div>
+      <div class="field"><input id="job-category" placeholder="Category (e.g., Web Development)" /></div>
+      <div class="field"><input id="job-budget" type="number" placeholder="Budget (USD)" /></div>
+      <div class="field"><input id="job-duration" placeholder="Duration (e.g., 2 weeks)" /></div>
+      <div class="field"><textarea id="job-description" placeholder="Describe the project" rows="4" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background: rgba(8,12,28,0.6); color: var(--text)"></textarea></div>
+      <div class="row">
+        <button class="btn" id="post-cancel">Cancel</button>
+        <button class="btn primary" id="post-submit">Create Job</button>
+      </div>
+    </div>
+  </div>
 
-        async function loginUser() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+  <div class="toast" id="toast"></div>
 
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
+  <script>
+    const API_BASE = 'https://htf25-team-391-production.up.railway.app';
 
-            try {
-                const response = await fetch(`${API_BASE}/api/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await response.json();
-                displayResponse('loginResponse', response.status, data);
-
-                if (data.token) {
-                    authToken = data.token;
-                    document.getElementById('tokenDisplay').style.display = 'block';
-                    document.getElementById('tokenDisplay').innerHTML = `<strong>Token saved:</strong> ${authToken.substring(0, 50)}...`;
-                    
-                    // Auto-fill token fields
-                    document.getElementById('getJobsToken').value = authToken;
-                    document.getElementById('createJobToken').value = authToken;
-                }
-            } catch (error) {
-                displayResponse('loginResponse', 500, { error: error.message });
-            }
-        }
-
-        async function getJobs() {
-            const token = document.getElementById('getJobsToken').value || authToken;
-
-            try {
-                const headers = {};
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch(`${API_BASE}/api/jobs`, {
-                    headers
-                });
-                const data = await response.json();
-                displayResponse('getJobsResponse', response.status, data);
-            } catch (error) {
-                displayResponse('getJobsResponse', 500, { error: error.message });
-            }
-        }
-
-        async function createJob() {
-            const token = document.getElementById('createJobToken').value || authToken;
-            const title = document.getElementById('jobTitle').value;
-            const description = document.getElementById('jobDescription').value;
-            const budget = document.getElementById('jobBudget').value;
-            const duration = document.getElementById('jobDuration').value;
-
-            if (!token) {
-                alert('Please provide an authorization token (login first)');
-                return;
-            }
-
-            if (!title || !description || !budget || !duration) {
-                alert('Please fill in all job fields');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/jobs`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        budget: parseFloat(budget),
-                        duration
-                    })
-                });
-                const data = await response.json();
-                displayResponse('createJobResponse', response.status, data);
-
-                // Clear form on success
-                if (response.ok) {
-                    document.getElementById('jobTitle').value = '';
-                    document.getElementById('jobDescription').value = '';
-                    document.getElementById('jobBudget').value = '';
-                    document.getElementById('jobDuration').value = '';
-                }
-            } catch (error) {
-                displayResponse('createJobResponse', 500, { error: error.message });
-            }
-        }
-    </script>
-</body>
-</html>
+    // Elements
+    const jobsGrid = document.getElementById
