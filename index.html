@@ -1,233 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FreelanceHub - Find & Post Freelance Jobs</title>
-  <style>
-    :root {
-      --bg: #0b1020;
-      --card: #121838;
-      --muted: #8aa0ff;
-      --primary: #5b7cfa;
-      --primary-600: #4a69f0;
-      --accent: #22d3ee;
-      --text: #e7eaf6;
-      --text-dim: #b9c0ff;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --shadow: 0 20px 40px rgba(0,0,0,0.35);
-      --glass: rgba(255,255,255,0.06);
-      --border: rgba(255,255,255,0.12);
+... (continued) 
+      });
     }
-    * { box-sizing: border-box }
-    html,body { height: 100% }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color: var(--text);
-      background: radial-gradient(1200px 600px at 10% -10%, #1a2358, transparent), radial-gradient(900px 500px at 90% 0%, #0e1536, transparent), linear-gradient(180deg, #0a0f23, #0b1020 40%);
-      background-attachment: fixed;
+
+    function jobCard(j){
+      const bids = state.bids.filter(b=>b.jobId===j.id);
+      const low = bids.length? Math.min(...bids.map(b=>b.amount)) : null;
+      return `
+        <div class="list-item">
+          <div class="meta">
+            <span class="pill">${j.category}</span>
+            <span class="pill">${new Date(j.created).toLocaleDateString()}</span>
+            <span class="pill">${j.status.toUpperCase()}</span>
+          </div>
+          <h4>${j.title}</h4>
+          <div class="meta">
+            <span class="price">Budget: $${j.budget}</span>
+            <span class="muted">Bids: ${bids.length}${low? ` (low $${low})`:""}</span>
+          </div>
+          <p class="muted">${j.desc}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn small" data-open="${j.id}">View</button>
+          </div>
+        </div>`;
     }
-    a { color: inherit; text-decoration: none }
-    .container { max-width: 1100px; margin: 0 auto; padding: 20px }
 
-    /* Navbar */
-    .nav {
-      position: sticky; top: 0; z-index: 50;
-      background: linear-gradient(180deg, rgba(10,15,35,0.8), rgba(10,15,35,0));
-      backdrop-filter: saturate(130%) blur(10px);
-      border-bottom: 1px solid var(--border);
+    function renderJobs(){
+      const list = $('#jobs');
+      list.innerHTML = filteredJobs().sort((a,b)=>b.created-a.created).map(jobCard).join('');
+      $$('[data-open]').forEach(btn=>btn.onclick=()=>openJob(btn.getAttribute('data-open')));
     }
-    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0 }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 0.3px }
-    .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--primary)); box-shadow: 0 10px 25px rgba(34,211,238,0.25) }
-    .brand span { font-size: 18px }
-    .nav-actions { display: flex; gap: 10px; align-items: center }
-    .btn { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); color: var(--text); background: var(--glass); cursor: pointer; transition: .2s; font-weight: 600 }
-    .btn:hover { transform: translateY(-1px); border-color: var(--muted) }
-    .btn.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: white; box-shadow: 0 10px 30px rgba(91,124,250,0.3) }
-    .btn.primary:hover { filter: brightness(1.05) }
 
-    /* Hero */
-    .hero { padding: 34px 0 26px }
-    .hero-card { background: linear-gradient(180deg, rgba(18,24,56,0.85), rgba(18,24,56,0.55)); border: 1px solid var(--border); border-radius: 18px; padding: 30px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; box-shadow: var(--shadow) }
-    .hero h1 { margin: 0 0 8px; font-size: 34px }
-    .hero p { margin: 0 0 14px; color: var(--text-dim) }
-    .search { display: flex; gap: 10px }
-    .field { position: relative; flex: 1 }
-    .field input, .field select { width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(8,12,28,0.6); color: var(--text) }
-
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
-    .stat { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center }
-    .stat .num { font-weight: 800; font-size: 20px }
-    .stat .lbl { color: var(--text-dim); font-size: 13px }
-
-    /* Filters */
-    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 }
-    .chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-dim); cursor: pointer; font-weight: 600 }
-    .chip.active { color: white; border-color: var(--muted); background: rgba(91,124,250,0.15) }
-
-    /* Grid */
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
-    .card { background: linear-gradient(180deg, rgba(18,24,56,0.9), rgba(18,24,56,0.6)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow) }
-    .card h3 { margin: 0; font-size: 18px }
-    .muted { color: var(--text-dim); font-size: 14px }
-    .tags { display: flex; gap: 8px; flex-wrap: wrap }
-    .tag { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid var(--border) }
-
-    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px }
-    .price { font-weight: 800; color: var(--accent) }
-
-    .empty { text-align: center; color: var(--text-dim); padding: 30px }
-
-    /* Auth & Modal */
-    .sheet, .modal { position: fixed; inset: 0; display: none; place-items: center; z-index: 100; background: rgba(0,0,0,0.5) }
-    .sheet.open, .modal.open { display: grid }
-    .panel { width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(18,24,56,0.95), rgba(18,24,56,0.75)); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow) }
-    .panel h2 { margin: 0 0 8px }
-    .panel .field { margin-bottom: 10px }
-
-    .toast { position: fixed; bottom: 20px; right: 20px; background: #111936; color: #e5edff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: none; box-shadow: var(--shadow) }
-    .toast.show { display: inline-block }
-
-    @media (max-width: 980px) {
-      .hero-card { grid-template-columns: 1fr }
-      .grid { grid-template-columns: repeat(2, 1fr) }
-    }
-    @media (max-width: 640px) {
-      .nav-inner { flex-wrap: wrap }
-      .grid { grid-template-columns: 1fr }
-      .brand span { display: none }
-    }
-  </style>
-</head>
-<body>
-  <header class="nav">
-    <div class="container nav-inner">
-      <a class="brand" href="#" id="nav-home">
-        <div class="logo"></div>
-        <span>FreelanceHub</span>
-      </a>
-      <nav class="nav-actions">
-        <button class="btn" id="btn-browse">Browse Jobs</button>
-        <button class="btn" id="btn-post">Post Job</button>
-        <button class="btn primary" id="btn-login">Sign In</button>
-      </nav>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- Hero -->
-    <section class="hero" id="section-hero">
-      <div class="hero-card">
-        <div>
-          <h1>Find Your Next Freelance Project</h1>
-          <p>Search curated projects, post jobs, and get hired fast.</p>
-          <div class="search">
-            <div class="field"><input id="search-keyword" type="text" placeholder="Search by keyword (e.g., React, logo)" /></div>
-            <div class="field">
-              <select id="search-category">
-                <option value="">All Categories</option>
-                <option>Web Development</option>
-                <option>Design</option>
-                <option>Writing</option>
-                <option>Data</option>
-                <option>Marketing</option>
-              </select>
+    function openJob(id){
+      const j = state.jobs.find(x=>x.id===id);
+      state.selectedJob = j;
+      const bids = state.bids.filter(b=>b.jobId===id).sort((a,b)=>a.amount-b.amount);
+      $('#job-detail').innerHTML = `
+        <div class="stack">
+          <div class="meta">
+            <span class="pill">${j.category}</span>
+            <span class="pill">${j.status.toUpperCase()}</span>
+          </div>
+          <h3>${j.title}</h3>
+          <p>${j.desc}</p>
+          <div class="meta">
+            <span class="price">Budget $${j.budget}</span>
+            <span class="muted">Owner: ${j.owner? j.owner.name : 'Unassigned'}</span>
+          </div>
+        </div>
+        <h4 style="margin-top:10px">Bids</h4>
+        <div class="list" id="bid-list">
+          ${bids.map(b=>`<div class="list-item">
+            <div class="meta">
+              <span class="pill">${b.user.name}</span>
+              <span class="pill">$${b.amount}</span>
+              <span class="pill">${b.days} days</span>
             </div>
-            <button class="btn primary" id="btn-search">Search</button>
-          </div>
-          <div class="stats" style="margin-top:14px">
-            <div class="stat"><div class="num" id="stat-jobs">0</div><div class="lbl">Active Jobs</div></div>
-            <div class="stat"><div class="num">4.8/5</div><div class="lbl">Client Rating</div></div>
-            <div class="stat"><div class="num">5k+</div><div class="lbl">Freelancers</div></div>
-          </div>
-        </div>
-        <div>
-          <div class="card">
-            <h3>Quick Actions</h3>
-            <div class="row"><span class="muted">New here?</span><button class="btn" id="quick-register">Create account</button></div>
-            <div class="row"><span class="muted">Have a project?</span><button class="btn" id="quick-post">Post a job</button></div>
-            <div class="row"><span class="muted">Returning?</span><button class="btn" id="quick-login">Sign in</button></div>
-          </div>
-        </div>
-      </div>
-    </section>
+            <p class="muted">${b.message}</p>
+          </div>`).join('') || '<span class="muted">No bids yet</span>'}
+        </div>`;
 
-    <!-- Filters -->
-    <section id="section-filters">
-      <div class="filters" id="category-filters">
-        <button class="chip active" data-cat="">All</button>
-        <button class="chip" data-cat="Web Development">Web Dev</button>
-        <button class="chip" data-cat="Design">Design</button>
-        <button class="chip" data-cat="Writing">Writing</button>
-        <button class="chip" data-cat="Data">Data</button>
-        <button class="chip" data-cat="Marketing">Marketing</button>
-      </div>
-    </section>
+      const isOwner = state.user && j.owner && j.owner.id===state.user.id;
+      $('#bids-area').classList.toggle('hidden', !(state.user && !isOwner && j.status==='open'));
 
-    <!-- Jobs Grid -->
-    <section id="section-jobs">
-      <div class="grid" id="jobs-grid"></div>
-      <div class="empty" id="jobs-empty" style="display:none">No jobs match your filters.</div>
-    </section>
-  </main>
+      const owner = $('#owner-actions');
+      owner.innerHTML = '';
+      owner.classList.add('hidden');
+      if(isOwner){
+        owner.classList.remove('hidden');
+        const bidsFor = state.bids.filter(b=>b.jobId===j.id);
+        owner.innerHTML = `
+          <h4>Owner Actions</h4>
+          <div class="list">
+            ${bidsFor.map(b=>`<div class="list-item">
+              <div class="meta">
+                <span class="pill">${b.user.name}</span>
+                <span class="pill">$${b.amount}</span>
+                <span class="pill">${b.days} days</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn small" data-assign="${b.id}">Assign</button>
+                <button class="btn small alt" data-decline="${b.id}">Decline</button>
+              </div>
+            </div>`).join('') || '<span class="muted">No bids submitted yet</span>'}
+          </div>`;
+        $$('[data-assign]').forEach(x=>x.onclick=()=>assignBid(x.getAttribute('data-assign')));
+        $$('[data-decline]').forEach(x=>x.onclick=()=>declineBid(x.getAttribute('data-decline')));
+      }
+      setRoute('browse');
+    }
 
-  <!-- Auth Sheets -->
-  <div class="sheet" id="sheet-login" aria-hidden="true">
-    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="login-title">
-      <h2 id="login-title">Sign in</h2>
-      <div class="field"><input id="login-email" type="email" placeholder="Email" /></div>
-      <div class="field"><input id="login-password" type="password" placeholder="Password" /></div>
-      <div class="row">
-        <button class="btn" id="login-cancel">Cancel</button>
-        <button class="btn primary" id="login-submit">Sign In</button>
-      </div>
-      <p class="muted" style="margin-top:8px">No account? <a href="#" id="to-register">Register</a></p>
-    </div>
-  </div>
+    function assignBid(bidId){
+      const b = state.bids.find(x=>x.id===bidId);
+      const j = state.jobs.find(x=>x.id===b.jobId);
+      j.status='assigned';
+      j.assignedTo = b.user;
+      saveAll();
+      openJob(j.id);
+      render();
+    }
+    function declineBid(bidId){
+      state.bids = state.bids.filter(x=>x.id!==bidId);
+      saveAll();
+      openJob(state.selectedJob.id);
+      render();
+    }
 
-  <div class="sheet" id="sheet-register" aria-hidden="true">
-    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="register-title">
-      <h2 id="register-title">Create your account</h2>
-      <div class="field"><input id="reg-name" type="text" placeholder="Full Name" /></div>
-      <div class="field"><input id="reg-email" type="email" placeholder="Email" /></div>
-      <div class="field"><input id="reg-password" type="password" placeholder="Password" /></div>
-      <div class="field">
-        <select id="reg-role">
-          <option value="freelancer">Freelancer</option>
-          <option value="client">Client</option>
-        </select>
-      </div>
-      <div class="row">
-        <button class="btn" id="register-cancel">Cancel</button>
-        <button class="btn primary" id="register-submit">Create Account</button>
-      </div>
-      <p class="muted" style="margin-top:8px">Already have an account? <a href="#" id="to-login">Sign in</a></p>
-    </div>
-  </div>
+    function renderLiveBids(){
+      const el = $('#live-bids');
+      const last5 = state.bids.slice(-5).reverse();
+      el.innerHTML = last5.map(b=>`<div class="list-item">
+        <div class="meta"><span class="pill">${b.user.name}</span> bid <span class="price">$${b.amount}</span> on <span class="pill">${(state.jobs.find(j=>j.id===b.jobId)||{}).title||'Job'}</span></div>
+        <div class="muted">${b.message}</div>
+      </div>`).join('') || '<span class="muted">No activity yet</span>';
+    }
 
-  <!-- Post Job Modal -->
-  <div class="modal" id="modal-post" aria-hidden="true">
-    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="post-title">
-      <h2 id="post-title">Post a Job</h2>
-      <div class="field"><input id="job-title" placeholder="Job Title" /></div>
-      <div class="field"><input id="job-category" placeholder="Category (e.g., Web Development)" /></div>
-      <div class="field"><input id="job-budget" type="number" placeholder="Budget (USD)" /></div>
-      <div class="field"><input id="job-duration" placeholder="Duration (e.g., 2 weeks)" /></div>
-      <div class="field"><textarea id="job-description" placeholder="Describe the project" rows="4" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background: rgba(8,12,28,0.6); color: var(--text)"></textarea></div>
-      <div class="row">
-        <button class="btn" id="post-cancel">Cancel</button>
-        <button class="btn primary" id="post-submit">Create Job</button>
-      </div>
-    </div>
-  </div>
+    function ensureAuth(routeIfNoAuth){
+      if(!state.user){ setRoute(routeIfNoAuth); return false; }
+      return true;
+    }
 
-  <div class="toast" id="toast"></div>
+    function postJob(){
+      if(!ensureAuth('auth')) return;
+      const title=$('#job-title').value.trim();
+      const budget=+$('#job-budget').value;
+      const category=$('#job-category').value;
+      const desc=$('#job-desc').value.trim();
+      if(!title||!budget||!desc){ $('#post-msg').textContent='Please fill all fields'; return; }
+      const j={id:uid(), title, budget, category, desc, owner: state.user, status:'open', created:Date.now()};
+      state.jobs.push(j); saveAll();
+      $('#post-msg').textContent='Job published';
+      $('#job-title').value=''; $('#job-budget').value=''; $('#job-desc').value='';
+      renderJobs();
+    }
 
-  <script>
-    const API_BASE = 'https://htf25-team-391-production.up.railway.app';
+    function placeBid(){
+      if(!ensureAuth('auth')) return;
+      const j = state.selectedJob; if(!j){ $('#bid-msg').textContent='Open a job first'; return; }
+      const amount=+$('#bid-amount').value; const days=+$('#bid-days').value; const message=$('#bid-message').value.trim();
+      if(!amount||!days||!message){ $('#bid-msg').textContent='Enter amount, timeline, message'; return; }
+      const b={id:uid(), jobId:j.id, user: state.user, amount, days, message, created:Date.now()};
+      state.bids.push(b); saveAll();
+      $('#bid-msg').textContent='Bid submitted';
+      $('#bid-amount').value=''; $('#bid-days').value=''; $('#bid-message').value='';
+      openJob(j.id); renderLiveBids(); renderMy();
+    }
 
-    // Elements
-    const jobsGrid = document.getElementById
+    function login(){
+      const email=$('#login-email').value.trim(); const pass=$('#login-pass').value.trim();
+      if(!email||!pass){ $('#login-msg').textContent='Email and password required'; return; }
+      let users = store.get('fh:users', []);
+      let u = users.find(x=>x.email===email && x.pass===pass);
+      if(!u){ $('#login-msg').textContent='Invalid credentials'; return; }
+      state.user = {id: u.id, name: u.name, email: u.email}; saveAll();
+      $('#login-msg').textContent='Welcome back'; navSync(); render();
+    }
+
+    function register(){
+      const name=$('#reg-name').value.trim(); const email=$('#reg-email').value.trim(); const pass=$('#reg-pass').value.trim();
+      if(!name||!email||!pass){ $('#reg-msg').textContent='All fields required'; return; }
+      let users = store.get('fh:users', []);
+      if(users.some(u=>u.email===email)){ $('#reg-msg').textContent='Email already used'; return; }
+      const u={id:uid(), name, email, pass}; users.push(u); localStorage.setItem('fh:users', JSON.stringify(users));
+      state.user = {id:u.id, name:u.name, email:u.email}; saveAll();
+      $('#reg-msg').textContent='Account created'; navSync(); render();
+    }
+
+    function logout(){ state.user=null; saveAll(); navSync(); render(); }
+
+    function renderMy(){
+      const mine = state.jobs.filter(j=>j.owner && state.user && j.owner.id===state.user.id);
+      $('#my-jobs').innerHTML = mine.map(j=>`<div class="list-item">
+        <div class="meta"><span class="pill">${j.category}</span><span class="pill">${j.status}</span></div>
+        <h4>${j.title}</h4>
+        <div class="muted">Budget $${j.budget}</div>
+        <button class="btn small" data-open="${j.id}">Open</button>
+      </div>`).join('') || '<span class="muted">No jobs yet</span>';
+
+      const myb = state.bids.filter(b=>state.user && b.user.id===state.user.id);
+      $('#my-bids').innerHTML = myb.map(b=>`<div class="list-item">
+        <div class="meta"><span class="pill">$${b.amount}</span><span class="pill">${b.days} days</span></div>
+        <div class="muted">${(state.jobs.find(j=>j.id===b.jobId)||{}).title||'Job'}</div>
+      </div>`).join('') || '<span class="muted">No bids yet</span>';
+    }
+
+    function render(){
+      seedIfEmpty();
+      navSync();
+      // route visibility
+      $('#browse-view').style.display = state.route==='browse'||state.route==='home' ? 'block' : 'none';
+      $('#post-view').style.display = state.route==='post' ? 'block' : 'none';
+      $('#auth-view').style.display = state.route==='auth' ? 'block' : 'none';
+      $('#dashboard-view').style.display = state.route==='my' ? 'block' : 'none';
+      renderJobs(); renderLiveBids(); if(state.user) renderMy();
+    }
+
+    // Nav events
+    $$('[data-route]').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); const r=a.getAttribute('data-route'); if(r==='home'){ state.route='home'; } else { setRoute(r); }});
+    $('#btn-find').onclick=()=>{ setRoute('browse'); renderJobs(); };
+    $('#btn-post').onclick=postJob;
+    $('#btn-bid').onclick=placeBid;
+    $('#do-login').onclick=login;
+    $('#do-register').onclick=register;
+    $('#btn-login').onclick=()=>setRoute('auth');
+    $('#btn-register').onclick=()=>setRoute('auth');
+    $('#btn-logout').onclick=logout;
+    $$('.tab').forEach(t=>t.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); state.filter=t.getAttribute('data-filter'); renderJobs(); });
+
+    render();
+  </script>
+</body>
+</html>
